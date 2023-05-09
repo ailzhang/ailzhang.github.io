@@ -1,4 +1,4 @@
-baseURL: "https://ailzhang.github.io"
+baseURL: "https://ailzhang.vercel.app"
 title: AZone
 paginate: 5
 theme: PaperMod
@@ -46,22 +46,13 @@ params:
     # disableHLJS: true # to disable highlight.js
     # disableFingerprinting: true
     favicon: "<link / abs url>"
-    favicon16x16: "<link / abs url>"
-    favicon32x32: "<link / abs url>"
-    apple_touch_icon: "<link / abs url>"
-    safari_pinned_tab: "<link / abs url>"
-
-  label:
-    text: "AZone"
-    icon: /apple-touch-icon.png
-    iconHeight: 35
 
   # profile-mode
   profileMode:
     enabled: true # needs to be explicitly set
     title: ailzhang 的猫抓板
     subtitle: "You'll never be younger than you are today"
-    imageUrl: "avatar.png"
+    imageUrl: "https://raw.githubusercontent.com/ailzhang/ailzhang.github.io/master/static/avatar.png"
     imageWidth: 120
     imageHeight: 120
     imageTitle: avatar
