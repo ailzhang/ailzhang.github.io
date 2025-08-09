@@ -71,7 +71,7 @@ But what if you have more stages than GPUs, the assignment ordering can be quite
 | GPU 2   | [2], [6]         | [2], [5]|
 | GPU 3   | [3], [7]         | [3], [4]|
 
-Note that there's probably no single "correct" assignment, the way you assign stages to devive can impact load balance, communication patterns and even how well you can overlap communication.
+Note that there's probably no single "correct" assignment, the way you assign stages to device can impact load balance, communication patterns and even how well you can overlap communication.
 
 ## How do we priortize different microbatches?
 
@@ -147,7 +147,7 @@ Before we get to more complex schedules, there're also optimizations coming from
 |--------|----------------|
 | Zero bubble 1F1B      | priortize dgrad to execute first since it's on critical path         |
 | Eager 1F1B      | takes into data transfer time into accout         |
-| DualPipe      | takes into data transfer time into accout         |
+| DualPipe      | run 1 fwd and 1 bwd simultaneously by overlapping comm & compute      |
 
 ### ZB1F1B
 
