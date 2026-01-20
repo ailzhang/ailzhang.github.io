@@ -1,24 +1,34 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>My New Hugo Site</title>
+    <title>Ailing&#39;s Blog</title>
     <link>http://localhost:1313/</link>
-    <description>Recent content on My New Hugo Site</description>
+    <description>Recent content on Ailing&#39;s Blog</description>
     <image>
-      <title>My New Hugo Site</title>
+      <title>Ailing&#39;s Blog</title>
       <url>http://localhost:1313/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
       <link>http://localhost:1313/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- 0.148.1</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 Aug 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 19 Jan 2026 22:12:33 -0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Visualizing Parallelism in Transformer</title>
+      <link>http://localhost:1313/posts/distributed-compute-in-transformer/</link>
+      <pubDate>Mon, 19 Jan 2026 22:12:33 -0800</pubDate>
+      <guid>http://localhost:1313/posts/distributed-compute-in-transformer/</guid>
+      <description>&lt;h2 id=&#34;simplicity-buried-in-abstractions&#34;&gt;&lt;strong&gt;Simplicity buried in Abstractions&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;I&amp;rsquo;ve always loved the &lt;a href=&#34;https://jax-ml.github.io/scaling-book/transformers/&#34;&gt;&amp;ldquo;Transformer Accounting&amp;rdquo;&lt;/a&gt; diagram from the JAX Scaling Book. It did a brilliant job of making the tensor shapes of a Transformer intuitive on a single device.&lt;/p&gt;
+&lt;p&gt;But as we scale up, the complexity shifts. We stop worrying about just matrix dimensions and start worrying about the &amp;lsquo;alphabet soup&amp;rsquo; of N-D parallelism (DP, TP, SP, CP, EP).&lt;/p&gt;
+&lt;p&gt;Here is the irony: The core ideas behind these parallelisms are actually &lt;strong&gt;fundamentally easy&lt;/strong&gt;. Conceptually, we are just decomposing a global tensor op to local tensor compute with comm collectives. But in practice, this simplicity gets buried under layers of dense abstractions and &amp;ldquo;spaghetti&amp;rdquo; implementations in production codebases.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Pipeline Parallelism Demystified</title>
       <link>http://localhost:1313/posts/pipeline-parallelism-demystified/</link>
       <pubDate>Sun, 03 Aug 2025 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/pipeline-parallelism-demystified/</guid>
-      <description>&lt;p&gt;In our book Efficient PyTorch, we gave a quick overview of the main sharding strategies used in large-scale distributed training: data parallelism, tensor parallelism, pipeline parallelism, and a few Transformer-specific ones like expert parallelism and context parallelism.&lt;/p&gt;
+      <description>&lt;p&gt;In our book &lt;a href=&#34;https://book.douban.com/subject/37119405/&#34;&gt;Efficient PyTorch&lt;/a&gt;, we gave a quick overview of the main sharding strategies used in large-scale distributed training: data parallelism, tensor parallelism, pipeline parallelism, and a few Transformer-specific ones like expert parallelism and context parallelism.&lt;/p&gt;
 &lt;p&gt;Pipeline parallelism? It barely got a page.&lt;/p&gt;
 &lt;p&gt;At the time, I thought it was too intuitive to need much detail. Then last week, I tried explaining all the existing schedules in a clean, logical way—and completely hit a wall.&lt;/p&gt;</description>
     </item>

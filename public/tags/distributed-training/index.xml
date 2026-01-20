@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Distributed Training on Ailing&#39;s Blog</title>
+    <link>http://localhost:1313/tags/distributed-training/</link>
+    <description>Recent content in Distributed Training on Ailing&#39;s Blog</description>
+    <image>
+      <title>Ailing&#39;s Blog</title>
+      <url>http://localhost:1313/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>http://localhost:1313/%3Clink%20or%20path%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+    </image>
+    <generator>Hugo -- 0.148.1</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 03 Aug 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/distributed-training/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pipeline Parallelism Demystified</title>
+      <link>http://localhost:1313/posts/pipeline-parallelism-demystified/</link>
+      <pubDate>Sun, 03 Aug 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/pipeline-parallelism-demystified/</guid>
+      <description>&lt;p&gt;In our book &lt;a href=&#34;https://book.douban.com/subject/37119405/&#34;&gt;Efficient PyTorch&lt;/a&gt;, we gave a quick overview of the main sharding strategies used in large-scale distributed training: data parallelism, tensor parallelism, pipeline parallelism, and a few Transformer-specific ones like expert parallelism and context parallelism.&lt;/p&gt;
+&lt;p&gt;Pipeline parallelism? It barely got a page.&lt;/p&gt;
+&lt;p&gt;At the time, I thought it was too intuitive to need much detail. Then last week, I tried explaining all the existing schedules in a clean, logical way—and completely hit a wall.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
