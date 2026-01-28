@@ -74,7 +74,7 @@ This diagram provides a high-level overview of layers of a Transformer model. No
 
 *   **The Strategy:** Vocab Parallel (VP) → Sequence Parallel (SP)
 *   **The Flow:**
-    1.  **Input:** We start with tokens sharded by S/(cp\*sp).
+    1.  **Input:** We start with tokens sharded by S/cp.
     2.  **Lookup:** The embedding weights are sharded across the Vocab dimension (V/vp). This means a local lookup produces partial vectors (many are zeros).
     3.  **The Optimization (The ReduceScatter Trick):** The naive approach would be to AllReduce (to sum the partial embeddings) and then Scatter (to shard them for Sequence Parallelism). Instead, we use a **ReduceScatter**. We sum the partial embeddings from the Vocab Parallel lookup and *immediately* scatter them into the Sequence Parallel dimension. This cuts communication overhead significantly right at the start.
 
