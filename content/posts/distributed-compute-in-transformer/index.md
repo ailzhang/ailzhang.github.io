@@ -65,12 +65,12 @@ Read this literally from left to right:
 This diagram provides a high-level overview of layers of a Transformer model. Note that for the Feed-Forward Network (FFN) block, I cover both the **Dense** variant (standard MLP) and the **Sparse** variant (Mixture of Experts), as modern large-scale models frequently toggle between these designs.
 
 
-![Overview of transformer](./overview.png)
+![Overview of transformer](./overview.svg)
 
 ### **Embeddings**
 
 
-![distributed embedding](./emb_parallel.png)
+![distributed embedding](./emb_parallel.svg)
 
 *   **The Strategy:** Vocab Parallel (VP) → Sequence Parallel (SP)
 *   **The Flow:**
@@ -82,7 +82,7 @@ This diagram provides a high-level overview of layers of a Transformer model. No
 
 Here we see the complex interplay of different sequence strategies colliding in one block.
 
-![distributed attention](./attn_parallel.png)
+![distributed attention](./attn_parallel.svg)
 
 *   **The Strategy:** Tensor Parallel (TP) + Sequence Parallel (SP) + Context Parallel (CP)
 *   **The Flow:**
@@ -93,7 +93,7 @@ Here we see the complex interplay of different sequence strategies colliding in 
 ### **MLP**
 
 
-![distributed MLP](./mlp_parallel.png)
+![distributed MLP](./mlp_parallel.svg)
 
 *   **The Strategy:** Tensor Parallel (TP) + Sequence Parallel (SP)
 *   **The Flow:**
@@ -105,19 +105,19 @@ Here we see the complex interplay of different sequence strategies colliding in 
 
 This is the most complex diagram. We aren't just sharding tensors; we are actively routing tokens to different devices.
 
-![distributed MoE](./moe_parallel.png)
+![distributed MoE](./moe_parallel.svg)
 
 *   **The Strategy:** Expert Parallel (EP) + Tensor Parallel (TP)
 *   **The Flow:**
     1.  **Dispatch (AllToAll):** This collective moves tokens from their sequence-sharded owners to their expert-sharded destinations.
-    2.  **Inner Parallelism:** Notice that *inside* the expert, we can still apply Tensor Parallelism (F/tp) for each matmul. 
+    2.  **Inner Parallelism:** Notice that *inside* the expert, we can still apply Tensor Parallelism (F/tp) for each matmul.
     3.  **Return (ReduceScatter + AllToAll):** We have to ReduceScatter the inner TP results (resolving the partial sums from the expert's Row Parallel output) *before* the final AllToAll returns the tokens to their original rank.
 
 ### **Loss**
 
 Calculating Cross Entropy when the vocab is sharded (V/vp) is non-trivial. You cannot simply take a softmax because the denominator requires a global sum.
 
-![distributed loss](./loss_parallel.png)
+![distributed loss](./loss_parallel.svg)
 
 *   **The Strategy:** Vocab Parallel (VP)
 *   **The Flow:**
