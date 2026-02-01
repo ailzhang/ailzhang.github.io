@@ -1,4 +1,4 @@
-baseURL: https://example.org/
+baseURL: https://ailzhang.github.io/
 languageCode: en-us
 title: Ailing's Blog
 theme: ["PaperMod"]
@@ -13,10 +13,10 @@ minify:
 
 params:
   env: production # to enable google analytics, opengraph, twitter-cards and schema.
-  title: ExampleSite
-  description: "ExampleSite description"
-  keywords: [Blog, Portfolio, PaperMod]
-  author: Me
+  title: Ailing's Blog
+  description: "Notes on ML systems and whatever else I find interesting."
+  keywords: [Distributed Training, Pipeline Parallelism, Transformer, ML Systems, PyTorch]
+  author: Ailing Zhang
   # author: ["Me", "You"] # multiple authors
   images: ["<link or path of image for opengraph, twitter-cards>"]
   DateFormat: "January 2, 2006"
@@ -71,7 +71,7 @@ params:
   # home-info mode
   homeInfoParams:
     Title: "Hi there \U0001F44B"
-    Content: Welcome to my blog
+    Content: Just some notes on ML systems and whatever else I find interesting. Opinions are my own.
 
   socialIcons:
     - name: github
@@ -91,7 +91,7 @@ params:
     hiddenInSingle: true # hide on single page
 
   editPost:
-    URL: "https://github.com/<path_to_repo>/content"
+    URL: "https://github.com/ailzhang/ailzhang.github.io/tree/main/content"
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 
