@@ -18,10 +18,7 @@
       <link>http://localhost:1313/posts/distributed-compute-in-transformer/</link>
       <pubDate>Mon, 19 Jan 2026 22:12:33 -0800</pubDate>
       <guid>http://localhost:1313/posts/distributed-compute-in-transformer/</guid>
-      <description>&lt;h2 id=&#34;simplicity-buried-in-abstractions&#34;&gt;&lt;strong&gt;Simplicity buried in Abstractions&lt;/strong&gt;&lt;/h2&gt;
-&lt;p&gt;I&amp;rsquo;ve always loved the &lt;a href=&#34;https://jax-ml.github.io/scaling-book/transformers/&#34;&gt;&amp;ldquo;Transformer Accounting&amp;rdquo;&lt;/a&gt; diagram from the JAX Scaling Book. It did a brilliant job of making the tensor shapes of a Transformer intuitive on a single device.&lt;/p&gt;
-&lt;p&gt;But as we scale up, the complexity shifts. We stop worrying about just matrix dimensions and start worrying about the &amp;lsquo;alphabet soup&amp;rsquo; of N-D parallelism (DP, TP, SP, CP, EP).&lt;/p&gt;
-&lt;p&gt;Here is the irony: The core ideas behind these parallelisms are actually &lt;strong&gt;fundamentally easy&lt;/strong&gt;. Conceptually, we are just decomposing a global tensor op to local tensor compute with comm collectives. But in practice, this simplicity gets buried under layers of dense abstractions and &amp;ldquo;spaghetti&amp;rdquo; implementations in production codebases.&lt;/p&gt;</description>
+      <description>A visual guide to the &amp;#39;alphabet soup&amp;#39; of Tensor, Sequence, Context, and Expert Parallelism.</description>
     </item>
     <item>
       <title>Pipeline Parallelism Demystified</title>

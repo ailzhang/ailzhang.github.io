@@ -11,8 +11,15 @@
     </image>
     <generator>Hugo -- 0.148.1</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 Aug 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 19 Jan 2026 22:12:33 -0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/distributed-training/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Visualizing Parallelism in Transformer</title>
+      <link>http://localhost:1313/posts/distributed-compute-in-transformer/</link>
+      <pubDate>Mon, 19 Jan 2026 22:12:33 -0800</pubDate>
+      <guid>http://localhost:1313/posts/distributed-compute-in-transformer/</guid>
+      <description>A visual guide to the &amp;#39;alphabet soup&amp;#39; of Tensor, Sequence, Context, and Expert Parallelism.</description>
+    </item>
     <item>
       <title>Pipeline Parallelism Demystified</title>
       <link>http://localhost:1313/posts/pipeline-parallelism-demystified/</link>
