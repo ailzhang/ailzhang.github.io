@@ -32,8 +32,8 @@ To make the abstract symbols concrete, I've included the dimensions of **[Llama 
 | **D** | Hidden Dim | Width of the residual stream. | 8192 |
 | **V** | Vocab Size | Total size of the tokenizer vocabulary. | 128k |
 | **F** | FFN Dim | Expansion dimension in MLP. | 28672 |
-| **E** | Num. Experts | Total experts (Llama 3 is dense). | - |
-| **C** | Capacity | Max tokens per expert (MoE specific). | - |
+| **E** | Num. Experts | Total experts. | - (Llama 3 is dense) |
+| **C** | Capacity | Max tokens per expert. | - (MoE specific) |
 
 ### Parallel Configuration (The Sharding Strategy)
 These symbols represent the **size** of the process group used to shard a specific dimension.
@@ -62,7 +62,7 @@ Read this literally from left to right:
 ## **The Visual Walkthrough**
 
 ### Overview
-This diagram provides a high-level overview of layers of a Transformer model. Note that for the Feed-Forward Network (FFN) block, I cover both the **Dense** variant (standard MLP) and the **Sparse** variant (Mixture of Experts), as modern large-scale models frequently toggle between these designs.
+This diagram provides a high-level overview of layers of a Transformer model. Note that for the Feed-Forward Network (FFN) block, I cover both the **dense** variant (standard MLP) and the **sparse** variant (Mixture of Experts), as modern large-scale models frequently toggle between these designs.
 
 {{< figure src="./overview.svg" width="400px" align="center" >}}
 
@@ -72,17 +72,9 @@ This diagram provides a high-level overview of layers of a Transformer model. No
 
 {{< figure src="./emb_parallel.svg" width="400px" align="center" >}}
 
-**The Strategy:** Vocab Parallel (VP) → Sequence Parallel (SP)
+The embedding table for a model like Llama 3 is massive (128k vocab * 8k dim ≈ 1GB bf16). Replicating this on every GPU is wasteful, so we shard the vocabulary itself (**Vocab Parallel**).
 
-**The Story:**
-We start with input tokens that are sharded by the sequence dimension. The first challenge is the lookup. The embedding table for a model like Llama 3 is massive (128k rows * 8k dim ≈ 1GB of bf16 weights). We can't replicate this on every GPU.
-
-Instead, we shard the vocabulary itself (Vocab Parallel). Each GPU holds a slice of the vocabulary. When we do a lookup, most tokens won't be found on our local slice—they return zeros.
-
-**The Optimization (The ReduceScatter Trick):**
-A naive approach would be to sum up all the partial lookups (AllReduce) and then split them again for the next layer. But that's wasteful. Instead, we use a **ReduceScatter**. We sum the partial embeddings from the Vocab Parallel lookup and *immediately* scatter them into the Sequence Parallel dimension. This cuts communication overhead significantly right at the start.
-
-> **Why this matters:** Without VP, the embedding layer alone can consume gigabytes of redundant memory. VP spreads that cost, while the ReduceScatter ensures we don't pay a double penalty for communication.
+Each GPU holds a slice of the vocabulary and performs a local lookup. Most tokens won't be found locally and return zeros. Instead of summing these up with a costly AllReduce, we use a **ReduceScatter**: we sum the partial embeddings and *immediately* scatter them into the **Sequence Parallel** dimension (splitting the sequence across GPUs). This cuts communication overhead significantly right at the start.
 
 ---
 
@@ -92,12 +84,9 @@ Here we see the complex interplay of different sequence strategies colliding in 
 
 {{< figure src="./attn_parallel.svg" width="400px" align="center" >}}
 
-**The Strategy:** Tensor Parallel (TP) + Sequence Parallel (SP) + Context Parallel (CP)
+To compute Self-Attention, every token needs to see every other token, but we enter this block with our sequence chopped up (**Sequence Parallel**). We trigger an `AllGather(sp)` to temporarily rebuild the local sequence.
 
-**The Story:**
-1.  **Entry (Rebuild the Sequence):** We enter this block with our sequence chopped up into tiny pieces (Sequence Parallel). But to compute standard Self-Attention, we need to project Q, K, and V. We trigger an `AllGather(sp)` to temporarily reconstruct the local sequence segment.
-2.  **The Attention Core (CP):** Now things get interesting. We use Context Parallelism here. While the Query (Q) stays local, the Keys (K) and Values (V) are scattered across the CP ring. We have to pass them around the ring (often overlapping this communication with the computation) so every token can attend to every other token.
-3.  **Exit (The TP/SP Handoff):** After attention, we project the output. This projection is Row Parallel, meaning it results in partial sums sharded by the hidden dimension. We use the ReduceScatter trick again: we sum the partial results from TP and simultaneously reshard them back into the memory-efficient SP-sharded shape.
+Inside the attention core, we use **Context Parallel**. While the Query (Q) stays local, the Keys (K) and Values (V) are scattered across the CP ring and must be passed around so every token can attend to them. Finally, the Output Projection is Row Parallel (sharded by input heads), so we use the **ReduceScatter** trick again to sum the partial results and simultaneously return to the memory-efficient SP-sharded shape.
 
 ---
 
@@ -105,13 +94,9 @@ Here we see the complex interplay of different sequence strategies colliding in 
 
 {{< figure src="./mlp_parallel.svg" width="400px" align="center" >}}
 
-**The Strategy:** Tensor Parallel (TP) + Sequence Parallel (SP)
+The MLP block is the heavy lifter of compute. Just like Attention, we first rebuild the sequence with `AllGather(sp)`.
 
-**The Story:**
-The MLP block is the heavy lifter of compute.
-1.  **Entry:** Just like Attention, we can't process the sequence while it's sharded. We fire an `AllGather(sp)` to rebuild the sequence.
-2.  **The Sandwich:** The MLP is a "sandwich" of linear layers. The first layer (Gate/Up projection) expands the hidden dimension (usually 4x). We slice this "column-wise" (Column Parallel). The second layer (Down projection) shrinks it back down, and we slice this "row-wise" (Row Parallel).
-3.  **Exit:** The result of the Row Parallel layer is partial sums. We run a `ReduceScatter` to sum them up and instantly return to our sequence-sharded state.
+Then comes the "sandwich" of linear layers using **Tensor Parallel**. The first layer (Up Proj) expands the hidden dimension and is sharded column-wise. The second layer (Down Proj) shrinks it back down and is sharded row-wise. Since the Row Parallel output is a partial sum, we run a **ReduceScatter** to sum them up and instantly return to our **Sequence Parallel** (sharded sequence) state.
 
 ---
 
@@ -121,29 +106,19 @@ This is the most complex diagram. We aren't just sharding tensors; we are active
 
 {{< figure src="./moe_parallel.svg" width="400px" align="center" >}}
 
-**The Strategy:** Expert Parallel (EP) + Tensor Parallel (TP)
+Tokens need to go to their assigned experts, which live on different GPUs (**Expert Parallel**). We use an `AllToAll` collective—literally "shuffle everything to everywhere"—to dispatch them.
 
-**The Story:**
-1.  **The Dispatch:** Tokens need to go to their assigned experts. Since experts live on different GPUs (Expert Parallel), we use an `AllToAll` collective—literally "shuffle everything to everywhere."
-2.  **Inner Parallelism:** Once the tokens arrive at their expert, the computation looks just like a standard MLP. Interestingly, inside this expert, we can *still* apply Tensor Parallelism if the expert itself is too big!
-3.  **The Return:** After the experts process the tokens, we have to send them back. We first `ReduceScatter` any inner Tensor Parallelism results, and then perform a final `AllToAll` to route the tokens back to their original sequence position.
-
-> **Why this matters:** MoE allows us to scale parameters to the trillions without exploding the compute cost, but it turns the network interconnect into a bottleneck. The efficiency of that `AllToAll` shuffle often determines the training speed.
+Once the tokens arrive, the computation looks just like a standard MLP (and can even use inner Tensor Parallelism). After processing, we use another `AllToAll` to route the tokens back to their original sequence position. This heavy shuffling makes the network interconnect the bottleneck for MoE training.
 
 ---
 
 ### **Loss**
 
-Calculating Cross Entropy when the vocab is sharded (V/vp) is non-trivial. You cannot simply take a softmax because the denominator requires a global sum.
+Calculating Cross Entropy when the vocab is sharded (**Vocab Parallel**) is non-trivial. You cannot simply take a softmax because the denominator requires a global sum.
 
 {{< figure src="./loss_parallel.svg" width="400px" align="center" >}}
 
-**The Strategy:** Vocab Parallel (VP)
-
-**The Story:**
-1.  **Logits:** We compute the final logits using a Local Unembed (Vocab Parallel). This gives us logits that are sliced by the vocabulary dimension.
-2.  **Online Softmax:** To compute softmax, we need the max (for stability) and the sum (for the denominator). We run `AllReduce(max)` and `AllReduce(sum)` across the vocab group to get these global values.
-3.  **Target Masking:** This is the tricky part. The ground-truth target label for a token exists on *one* specific GPU, but the logits are scattered everywhere. We mask the non-local logits and use an `AllReduce(sum)` to broadcast the correct target logit to everyone in the group, allowing the loss calculation to proceed.
+We compute the logits locally (sharded by vocab). To perform the online softmax, we run `AllReduce(max)` and `AllReduce(sum)` to get the global stability stats. The tricky part is the target masking: the ground-truth label exists on *one* specific GPU, but the logits are scattered everywhere. We mask the non-local logits and use an `AllReduce(sum)` to broadcast the correct target logit to the group.
 
 ---
 
