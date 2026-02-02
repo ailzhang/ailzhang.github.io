@@ -1,8 +1,6 @@
 ---
 date: '2026-01-19T22:12:33-08:00'
-draft: true
 title: 'Visualizing Parallelism in Transformer'
-description: "A visual guide to the 'alphabet soup' of Tensor, Sequence, Context, and Expert Parallelism."
 tags: ["Distributed Training", "Transformer", "Parallelism", "ML Systems"]
 ---
 
